@@ -25,11 +25,11 @@ func main() {
 	case function == 3:
 		ocenka()
 	}
-	fmt.Println("Желаете продолжить? (y/n)")
+	fmt.Println("Желаете продолжить? (д/н)")
 	fmt.Scanln(&i)
 
-	for i == "y" {
-		fmt.Println("Hello", name, "change function: \n 1. Калькулятор. \n 2. Нахождение корней квадратного уровнения.")
+	for i == "д" {
+		fmt.Println("Привет", name, "выбери функцию: \n 1. Калькулятор. \n 2. Нахождение корней квадратного уровнения.")
 		fmt.Println(" 3. Подсчет оченки за четверть по текущим.")
 		fmt.Scanln(&function)
 		switch {
@@ -40,7 +40,7 @@ func main() {
 		case function == 3:
 			ocenka()
 		}
-		fmt.Println("Желаете продолжить? (y/n)")
+		fmt.Println("Желаете продолжить? (д/н)")
 		fmt.Scanln(&i)
 
 	}
@@ -49,7 +49,7 @@ func main() {
 }
 
 func calk() {
-	fmt.Println("Введите выражение (2 + 2) (считает числа от 1 до 10:")
+	fmt.Println("Введите выражение (2 + 2) (считает числа от 1 до 10):")
 	fmt.Scan(&aStr, &operator, &bStr)
 
 	a, _ := strconv.Atoi(aStr)

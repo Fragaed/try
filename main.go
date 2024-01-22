@@ -1,130 +1,144 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"math"
+	"os"
 	"strconv"
+	"strings"
 )
 
-var aStr, bStr, operator string
+var romanNumerals = map[string]int{
+	"I": 1, "IV": 4, "V": 5, "IX": 9, "X": 10,
+	"XL": 40, "L": 50, "XC": 90, "C": 100,
+}
+
+// Функция для конвертации римского числа в арабское
+func convertToArabic(romanNumeral string) (int, error) {
+	total := 0
+	for i := 0; i < len(romanNumeral); {
+		if i+1 < len(romanNumeral) && romanNumerals[romanNumeral[i:i+2]] > 0 {
+			total += romanNumerals[romanNumeral[i:i+2]]
+			i += 2
+		} else {
+			if romanNumerals[romanNumeral[i:i+1]] > 0 {
+				total += romanNumerals[romanNumeral[i:i+1]]
+				i++
+			} else {
+				return 0, fmt.Errorf("invalid Roman numeral: %s", romanNumeral)
+			}
+		}
+	}
+	return total, nil
+}
+
+// Функция для конвертации арабского числа в римское
+func convertToRoman(arabicNumeral int) (string, error) {
+	var roman strings.Builder
+	arabicToRoman := []struct {
+		arabic int
+		roman  string
+	}{
+		{100, "C"}, {90, "XC"}, {50, "L"}, {40, "XL"},
+		{10, "X"}, {9, "IX"}, {5, "V"}, {4, "IV"}, {1, "I"},
+	}
+
+	if arabicNumeral > 100 || arabicNumeral < 1 {
+		return "", fmt.Errorf("number out of range for Roman numerals: %d", arabicNumeral)
+	}
+
+	for _, pair := range arabicToRoman {
+		for arabicNumeral >= pair.arabic {
+			roman.WriteString(pair.roman)
+			arabicNumeral -= pair.arabic
+		}
+	}
+
+	return roman.String(), nil
+}
+
+// Функция для вычисления результата операции
+func calculate(a int, b int, operator string) (int, error) {
+	switch operator {
+	case "+":
+		return a + b, nil
+	case "-":
+		return a - b, nil
+	case "*":
+		return a * b, nil
+	case "/":
+		if b == 0 {
+			return 0, fmt.Errorf("division by zero")
+		}
+		return a / b, nil
+	default:
+		return 0, fmt.Errorf("invalid operator: %s", operator)
+	}
+}
 
 func main() {
-	var name string
-	var function int
-	var i string
-	fmt.Println("Как тебя зовут?")
-	fmt.Scanln(&name)
-	fmt.Println("Привет", name, "выбери функцию: \n 1. Калькулятор \n 2. Нахождение корней квадратного уровнения")
-	fmt.Println(" 3. Подсчет оченки за четверть по текущим.")
-	fmt.Scanln(&function)
-	switch {
-	case function == 1:
-		calk()
-	case function == 2:
-		poiskx()
-	case function == 3:
-		ocenka()
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Enter the expression (for example, II + III or 4 * 5): ")
+
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		panic("Failed to read input")
 	}
-	fmt.Println("Желаете продолжить? (д/н)")
-	fmt.Scanln(&i)
 
-	for i == "д" {
-		fmt.Println("Привет", name, "выбери функцию: \n 1. Калькулятор. \n 2. Нахождение корней квадратного уровнения.")
-		fmt.Println(" 3. Подсчет оченки за четверть по текущим.")
-		fmt.Scanln(&function)
-		switch {
-		case function == 1:
-			calk()
-		case function == 2:
-			poiskx()
-		case function == 3:
-			ocenka()
-		}
-		fmt.Println("Желаете продолжить? (д/н)")
-		fmt.Scanln(&i)
-
+	input = strings.TrimSpace(input)
+	parts := strings.Fields(input)
+	if len(parts) != 3 {
+		panic("Invalid input. Please use the format: <number> <operator> <number>")
 	}
-	fmt.Scanln()
 
-}
+	aStr, operator, bStr := parts[0], parts[1], parts[2]
 
-func calk() {
-	fmt.Println("Введите выражение (2 + 2) (считает числа от 1 до 10):")
-	fmt.Scan(&aStr, &operator, &bStr)
+	// Инициализация переменных
+	var a, b int
+	var aIsRoman, bIsRoman bool
 
-	a, _ := strconv.Atoi(aStr)
-	b, _ := strconv.Atoi(bStr)
-
-	if a <= 10 && a > 0 && b <= 10 && b > 0 {
-		switch operator {
-		case "+":
-			println(a + b)
-		case "-":
-			println(a - b)
-		case "*":
-			println(a * b)
-		case "/":
-			println(a / b)
-		}
+	// Проверка и преобразование первого числа
+	if a, err = strconv.Atoi(aStr); err == nil {
+		aIsRoman = false
+	} else if a, err = convertToArabic(aStr); err == nil {
+		aIsRoman = true
 	} else {
-		println("error")
+		panic(fmt.Sprintf("Invalid number or Roman numeral: %s", aStr))
 	}
-	fmt.Scanln()
-}
 
-func poiskx() {
-	var a, b, c float64
-
-	fmt.Println("    Решаем квадратное уровнение")
-	fmt.Println("Введи a:")
-	fmt.Scan(&a)
-	fmt.Println("Введи b:")
-	fmt.Scan(&b)
-	fmt.Println("Введи c:")
-	fmt.Scan(&c)
-
-	D := (b * b) - 4*(a*c)
-
-	if D > 0 {
-		var x1 float64
-		var x2 float64
-
-		x1 = (-b + math.Sqrt(D)/(2*a))
-		x2 = (-b - math.Sqrt(D)/(2*a))
-
-		fmt.Println("Ваше уровнение имеет 2 корня \nD = " + fmt.Sprint(D))
-		fmt.Println("X1: " + fmt.Sprint(x1) + "\nX2: " + fmt.Sprint(x2))
-
-	} else if D == 0 {
-		var x float64
-
-		x = (-b) / (2 * a)
-
-		fmt.Println("Ваше уровнение имеет 1 корень \n D=0")
-		fmt.Println("x: " + fmt.Sprint(x))
-	} else if D < 0 {
-		fmt.Println("Ваше уровнение не имеет корней \nD: " + fmt.Sprint(D))
+	// Проверка и преобразование второго числа
+	if b, err = strconv.Atoi(bStr); err == nil {
+		bIsRoman = false
+	} else if b, err = convertToArabic(bStr); err == nil {
+		bIsRoman = true
+	} else {
+		panic(fmt.Sprintf("Invalid number or Roman numeral: %s", bStr))
 	}
-	fmt.Scanln()
-}
 
-func ocenka() {
-	var x float64
-	sum := 0.0
-	var srednee float64
-	marks := []float64{}
-	fmt.Println("Введите ваши оценки: (Чтобы прекратитить введите число >5)")
-	for i := 0; x <= 5; i++ {
-		fmt.Scan(&x)
-		marks = append(marks, x)
-		sum = sum + marks[i]
+	// Проверка, что оба числа либо римские, либо арабские
+	if aIsRoman != bIsRoman {
+		panic("Cannot perform operations between Roman and Arabic numerals.")
 	}
-	sum = sum - marks[len(marks)-1]
-	marks = marks[:len(marks)-1]
-	kol_vo := float64(len(marks))
-	srednee = math.Round(sum / kol_vo)
-	fmt.Println("Список оценок: \n", marks)
-	fmt.Println("Колличество оценок: ", len(marks))
-	fmt.Println("Оценка которая выходит в четверти: ", srednee)
-	fmt.Scanln()
+
+	// Проверка диапазона чисел
+	if a < 1 || a > 10 || b < 1 || b > 10 {
+		panic("Numbers must be in range from 1 to 10")
+	}
+
+	// Вычисление результата
+	result, err := calculate(a, b, operator)
+	if err != nil {
+		panic(err)
+	}
+
+	// Вывод результата и конвертация в римское число, если нужно
+	if aIsRoman {
+		romanResult, err := convertToRoman(result)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Result:", romanResult)
+	} else {
+		fmt.Println("Result:", result)
+	}
 }
